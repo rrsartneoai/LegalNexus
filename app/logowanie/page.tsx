@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -10,42 +9,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { useAuth, mockLogin } from "@/lib/auth"
-import { ArrowLeft, Mail, Phone, Eye, EyeOff } from "lucide-react"
+import { useAuth } from "@/lib/auth"
+import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { toast } from "@/components/ui/use-toast"
 
 export default function LogowaniePage() {
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email")
   const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { signInWithEmail, loading, isAuthenticated } = useAuth()
   const router = useRouter()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/panel-klienta")
+    }
+  }, [isAuthenticated, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      const user = mockLogin(loginMethod === "email" ? email : phone, "client")
-      login(user)
-      setIsLoading(false)
-      router.push("/panel-klienta")
-    }, 1000)
+    const { user, error } = await signInWithEmail(email, password)
+
+    if (error) {
+      toast({
+        title: "Błąd logowania",
+        description: error,
+        variant: "destructive",
+      })
+    } else if (user) {
+      toast({
+        title: "Zalogowano pomyślnie!",
+        description: `Witaj z powrotem, ${user.name}!`,
+      })
+
+      // Redirect based on user role
+      if (user.role === "admin") {
+        router.push("/admin")
+      } else if (user.role === "operator") {
+        router.push("/panel-operatora")
+      } else {
+        router.push("/panel-klienta")
+      }
+    }
   }
 
   const handleSocialLogin = (provider: string) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      const user = mockLogin(`user@${provider}.com`, "client")
-      login(user)
-      setIsLoading(false)
-      router.push("/panel-klienta")
-    }, 1000)
+    toast({
+      title: "Funkcja w budowie",
+      description: `Logowanie przez ${provider} zostanie wkrótce dodane.`,
+    })
   }
 
   return (
@@ -64,7 +80,7 @@ export default function LogowaniePage() {
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">Zaloguj się</CardTitle>
-              <p className="text-gray-600">Uzyskaj dostęp do swojego panelu klienta</p>
+              <p className="text-gray-600">Uzyskaj dostęp do swojego panelu</p>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -74,7 +90,7 @@ export default function LogowaniePage() {
                   variant="outline"
                   className="w-full bg-transparent"
                   onClick={() => handleSocialLogin("google")}
-                  disabled={isLoading}
+                  disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -101,7 +117,7 @@ export default function LogowaniePage() {
                   variant="outline"
                   className="w-full bg-transparent"
                   onClick={() => handleSocialLogin("facebook")}
-                  disabled={isLoading}
+                  disabled={loading}
                 >
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -119,53 +135,20 @@ export default function LogowaniePage() {
                 </div>
               </div>
 
-              {/* Login Method Selection */}
-              <div className="flex space-x-2">
-                <Button
-                  variant={loginMethod === "email" ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => setLoginMethod("email")}
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Email
-                </Button>
-                <Button
-                  variant={loginMethod === "phone" ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => setLoginMethod("phone")}
-                >
-                  <Phone className="mr-2 h-4 w-4" />
-                  Telefon
-                </Button>
-              </div>
-
               {/* Login Form */}
               <form onSubmit={handleLogin} className="space-y-4">
-                {loginMethod === "email" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Adres email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="twoj@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Numer telefonu</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+48 123 456 789"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Adres email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="twoj@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Hasło</Label>
@@ -177,6 +160,7 @@ export default function LogowaniePage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      disabled={loading}
                     />
                     <Button
                       type="button"
@@ -184,6 +168,7 @@ export default function LogowaniePage() {
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -196,8 +181,8 @@ export default function LogowaniePage() {
                   </Link>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logowanie..." : "Zaloguj się"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Logowanie..." : "Zaloguj się"}
                 </Button>
               </form>
 
@@ -206,6 +191,16 @@ export default function LogowaniePage() {
                 <Link href="/rejestracja" className="text-blue-600 hover:underline font-medium">
                   Zarejestruj się
                 </Link>
+              </div>
+
+              {/* Development access info */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm">
+                <h4 className="font-medium text-blue-800 mb-2">Dostęp do paneli (rozwój):</h4>
+                <ul className="text-blue-700 space-y-1">
+                  <li>• Panel klienta: dowolny email bez "admin" lub "operator"</li>
+                  <li>• Panel operatora: email zawierający "operator"</li>
+                  <li>• Panel administratora: email zawierający "admin"</li>
+                </ul>
               </div>
             </CardContent>
           </Card>

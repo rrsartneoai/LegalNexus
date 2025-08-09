@@ -1,25 +1,34 @@
-import { streamLegalResponse } from "@/lib/gemini"
+import { NextResponse } from "next/server"
+import { streamText } from "ai"
+import { geminiModel } from "@/lib/gemini"
+import { buildSystemPrompt, retrieveTopK } from "@/lib/rag"
 
-export const maxDuration = 30
-
+// POST /api/chat - streaming chat with RAG
 export async function POST(req: Request) {
   try {
-    const { messages, locale = "pl" } = await req.json()
+    const body = await req.json()
+    // Expect { messages: [{ role: "user" | "assistant" | "system", content: string }, ...] }
+    const messages = (body?.messages ?? []) as Array<{ role: string; content: string }>
 
-    const lastMessage = messages[messages.length - 1]
+    // last user question
+    const lastUser = [...messages].reverse().find((m) => m.role === "user")
+    const question = lastUser?.content?.slice(0, 4000) || "Brak pytania."
+    const language: "pl" | "en" = /[ąćęłńóśźż]/i.test(question) ? "pl" : "en"
 
-    if (!lastMessage?.content) {
-      return new Response("No message content provided", { status: 400 })
-    }
+    // Retrieval
+    const contexts = retrieveTopK(question, 3)
+    const system = buildSystemPrompt(language, contexts)
 
-    const result = streamLegalResponse({
-      question: lastMessage.content,
-      language: locale,
+    const result = await streamText({
+      model: geminiModel,
+      system,
+      prompt: question,
+      // Keep tokens generous but safe
+      maxTokens: 900,
     })
 
-    return result.toDataStreamResponse()
-  } catch (error) {
-    console.error("Chat API error:", error)
-    return new Response("Internal server error", { status: 500 })
+    return result.toAIStreamResponse()
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Chat error" }, { status: 500 })
   }
 }

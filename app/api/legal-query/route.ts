@@ -3,8 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { question, language = "pl" } = body
+    const { question, context, language = "pl" } = await request.json()
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 })
@@ -12,12 +11,13 @@ export async function POST(request: NextRequest) {
 
     const response = await generateLegalResponse({
       question,
+      context,
       language,
     })
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error("Legal query error:", error)
+    console.error("Error in legal query API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

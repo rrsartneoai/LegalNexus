@@ -1,65 +1,44 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Network, Search, Shield, Code, Zap, Building } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Bot, FileSearch, Scale, Users, Zap, Clock, ArrowRight, CheckCircle, Shield, FileText, Lock } from 'lucide-react'
+import Image from "next/image"
 
-interface FeaturesSectionProps {
-  t: any
-}
-
-export function FeaturesSection({ t }: FeaturesSectionProps) {
+export function FeaturesSection() {
   const features = [
     {
-      icon: Network,
-      title: t.features.domainDriven.title,
-      description: t.features.domainDriven.description,
-    },
-    {
-      icon: Search,
-      title: t.features.search.title,
-      description: t.features.search.description,
-    },
-    {
       icon: Shield,
-      title: t.features.security.title,
-      description: t.features.security.description,
+      title: "Zgodność i rzetelność",
+      desc: "Odpowiedzi oparte o sprawdzone źródła, z jasnym zastrzeżeniem weryfikacji prawnej.",
     },
-    {
-      icon: Code,
-      title: "Zgodność z JSON:API",
-      description: "Pełna zgodność ze standardami JSON:API, HATEOAS, wersjonowaniem i dokumentacją OpenAPI.",
-    },
-    {
-      icon: Zap,
-      title: "Wysoka Wydajność",
-      description: "Cache'owanie Redis, optymalizacja zapytań i skalowanie horyzontalne dla maksymalnej wydajności.",
-    },
-    {
-      icon: Building,
-      title: "Architektura Multi-tenant",
-      description: "Wsparcie dla wielu kancelarii z pełną izolacją danych i separacją konfiguracji.",
-    },
+    { icon: Clock, title: "Szybkość działania", desc: "Natychmiastowe wyniki bez oczekiwania i zbędnych kroków." },
+    { icon: FileText, title: "Dokumenty", desc: "Tworzenie i zarządzanie pismami w jednym miejscu." },
+    { icon: Lock, title: "Bezpieczeństwo", desc: "Ochrona danych z wykorzystaniem najlepszych praktyk." }
+  ]
+
+  const stats = [
+    { label: "Kancelarii korzysta", value: "500+", icon: Users },
+    { label: "Dokumentów przeanalizowano", value: "50k+", icon: FileSearch },
+    { label: "Zapytań AI dziennie", value: "10k+", icon: Bot },
+    { label: "Średni czas oszczędności", value: "4h", icon: Clock },
   ]
 
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t.features.title}</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t.features.subtitle}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-8">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                  <feature.icon className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </CardContent>
-            </Card>
+    <section className="bg-gray-50 dark:bg-gray-950">
+      <div className="container mx-auto px-4 py-14">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center">Dlaczego LegalNexus?</h2>
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((f) => (
+            <div
+              key={f.title}
+              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-md transition-shadow"
+            >
+              <f.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <h3 className="mt-3 font-semibold text-gray-900 dark:text-white">{f.title}</h3>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{f.desc}</p>
+            </div>
           ))}
         </div>
       </div>

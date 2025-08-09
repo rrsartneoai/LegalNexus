@@ -1,7 +1,9 @@
 import { google } from "@ai-sdk/google"
 import { generateText, streamText } from "ai"
 
-const model = google("gemini-2.0-flash-exp")
+// This uses the GOOGLE_GENERATIVE_AI_API_KEY environment variable automatically.
+// Do not expose the key on the client. Server only.
+export const geminiModel = google("gemini-2.0-flash-exp")
 
 export interface LegalQuery {
   question: string
@@ -16,18 +18,89 @@ export interface LegalResponse {
   disclaimer: string
 }
 
+// Legal knowledge base for RAG
+const legalKnowledgeBase = [
+  {
+    id: "kodeks-cywilny-1",
+    title: "Kodeks Cywilny - Umowy",
+    content:
+      "Zgodnie z art. 353¹ Kodeksu Cywilnego, strony zawierające umowę mogą ułożyć stosunek prawny według swojego uznania, byleby jego treść lub cel nie sprzeciwiały się właściwości (naturze) stosunku, ustawie ani zasadom współżycia społecznego. Umowa wywiera skutek nie tylko między stronami, które ją zawarły, ale także względem ich następców prawnych, chyba że co innego wynika z ustawy, z czynności prawnej lub z natury zobowiązania.",
+  },
+  {
+    id: "kodeks-cywilny-2",
+    title: "Kodeks Cywilny - Przedawnienie",
+    content:
+      "Zgodnie z art. 117 § 1 Kodeksu Cywilnego, jeżeli ustawa nie stanowi inaczej, roszczenie majątkowe przedawnia się z upływem lat dziesięciu, a roszczenie o świadczenia okresowe oraz roszczenie związane z prowadzeniem działalności gospodarczej - z upływem lat trzech.",
+  },
+  {
+    id: "kodeks-pracy-1",
+    title: "Kodeks Pracy - Wypowiedzenie umowy",
+    content:
+      "Zgodnie z art. 30 § 1 Kodeksu Pracy, każda ze stron może wypowiedzieć umowę o pracę zawartą na czas nieokreślony z zachowaniem okresu wypowiedzenia. Okres wypowiedzenia wynosi: 2 tygodnie, jeżeli pracownik był zatrudniony krócej niż 6 miesięcy; 1 miesiąc, jeżeli pracownik był zatrudniony co najmniej 6 miesięcy; 3 miesiące, jeżeli pracownik był zatrudniony co najmniej 3 lata.",
+  },
+  {
+    id: "kpa-1",
+    title: "Kodeks Postępowania Administracyjnego - Odwołanie",
+    content:
+      "Zgodnie z art. 127 § 1 KPA, od decyzji wydanej w pierwszej instancji służy odwołanie do organu wyższego stopnia. Odwołanie wnosi się w terminie czternastu dni od dnia doręczenia decyzji stronie. Odwołanie wnosi się za pośrednictwem organu, który wydał decyzję.",
+  },
+]
+
+// Simple vector similarity function (in production, use proper embeddings)
+function calculateSimilarity(query: string, content: string): number {
+  const queryWords = query.toLowerCase().split(" ")
+  const contentWords = content.toLowerCase().split(" ")
+
+  let matches = 0
+  queryWords.forEach((word) => {
+    if (contentWords.some((contentWord) => contentWord.includes(word) || word.includes(contentWord))) {
+      matches++
+    }
+  })
+
+  return matches / queryWords.length
+}
+
+// RAG implementation
+function retrieveRelevantContext(query: string): string[] {
+  const relevantDocs = legalKnowledgeBase
+    .map((doc) => ({
+      ...doc,
+      similarity: calculateSimilarity(query, doc.content),
+    }))
+    .filter((doc) => doc.similarity > 0.1)
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, 3)
+    .map((doc) => doc.content)
+
+  return relevantDocs
+}
+
 export async function generateLegalResponse(query: LegalQuery): Promise<LegalResponse> {
+  // Retrieve relevant context using RAG
+  const relevantContext = retrieveRelevantContext(query.question)
+
   const systemPrompt =
     query.language === "pl"
       ? `Jesteś profesjonalnym asystentem prawnym AI dla kancelarii prawnych w Polsce. 
        Udzielaj precyzyjnych odpowiedzi na pytania prawne, zawsze podkreślając, że wymagają weryfikacji przez kwalifikowanego prawnika.
-       Odpowiadaj w języku polskim, używając profesjonalnej terminologii prawnej.`
+       Odpowiadaj w języku polskim, używając profesjonalnej terminologii prawnej.
+       
+       Kontekst prawny do wykorzystania:
+       ${relevantContext.join("\n\n")}
+       
+       Bazuj na podanym kontekście prawnym, ale jeśli nie znajdziesz odpowiedzi w kontekście, powiedz o tym wprost.`
       : `You are a professional legal AI assistant for law firms. 
        Provide precise answers to legal questions, always emphasizing that they require verification by a qualified lawyer.
-       Respond in English using professional legal terminology.`
+       Respond in English using professional legal terminology.
+       
+       Legal context to use:
+       ${relevantContext.join("\n\n")}
+       
+       Base your answer on the provided legal context, but if you don't find the answer in the context, state that clearly.`
 
   const { text } = await generateText({
-    model,
+    model: geminiModel,
     system: systemPrompt,
     prompt: query.question,
     maxTokens: 1000,
@@ -40,20 +113,28 @@ export async function generateLegalResponse(query: LegalQuery): Promise<LegalRes
 
   return {
     answer: text,
-    confidence: 0.85,
+    confidence: relevantContext.length > 0 ? 0.85 : 0.6,
     disclaimer,
-    sources: ["Kodeks cywilny", "Ustawa o adwokaturze", "Kodeks postępowania cywilnego"],
+    sources: relevantContext.length > 0 ? ["Kodeks cywilny", "Kodeks pracy", "KPA"] : [],
   }
 }
 
 export function streamLegalResponse(query: LegalQuery) {
+  const relevantContext = retrieveRelevantContext(query.question)
+
   const systemPrompt =
     query.language === "pl"
-      ? `Jesteś profesjonalnym asystentem prawnym AI dla kancelarii prawnych w Polsce.`
-      : `You are a professional legal AI assistant for law firms.`
+      ? `Jesteś profesjonalnym asystentem prawnym AI dla kancelarii prawnych w Polsce.
+       
+       Kontekst prawny:
+       ${relevantContext.join("\n\n")}`
+      : `You are a professional legal AI assistant for law firms.
+       
+       Legal context:
+       ${relevantContext.join("\n\n")}`
 
   return streamText({
-    model,
+    model: geminiModel,
     system: systemPrompt,
     prompt: query.question,
     maxTokens: 1000,

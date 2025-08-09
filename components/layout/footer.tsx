@@ -1,104 +1,121 @@
 "use client"
 
-import { Scale, Phone, Mail, MapPin, Facebook, Twitter, Linkedin } from "lucide-react"
 import Link from "next/link"
+import { Scale, MapPin, Phone, Mail, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 
 export function Footer() {
+  const currentYear = new Date().getFullYear()
+
+  const services = [
+    { name: "Analiza dokumentów", href: "/analiza-dokumentow" },
+    { name: "Pisma prawne", href: "/pisma-prawne" },
+    { name: "Konsultacje", href: "/konsultacje" },
+    { name: "Reprezentacja", href: "/reprezentacja" },
+  ]
+
+  const information = [
+    { name: "Regulamin", href: "/regulamin" },
+    { name: "Polityka prywatności", href: "/polityka-prywatnosci" },
+    { name: "RODO", href: "/rodo" },
+    { name: "FAQ", href: "/faq" },
+  ]
+
+  const companyLinks = [
+    { name: "Jak to działa", href: "/jak-to-dziala" },
+    { name: "Blog", href: "/blog" },
+    { name: "Kontakt", href: "/kontakt" },
+  ]
+
+  const socialLinks = [
+    { icon: Facebook, href: "https://facebook.com/legalnexus", label: "Facebook" },
+    { icon: Twitter, href: "https://twitter.com/legalnexus", label: "Twitter" },
+    { icon: Linkedin, href: "https://linkedin.com/company/legalnexus", label: "LinkedIn" },
+    { icon: Instagram, href: "https://instagram.com/legalnexus", label: "Instagram" },
+  ]
+
   return (
-    <footer className="bg-gray-900 text-white py-12 mt-auto font-montserrat">
+    <footer className="bg-gray-900 text-gray-300 py-12 font-montserrat">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center mb-4">
-              <Scale className="h-8 w-8 text-blue-400 mr-2" />
-              <span className="text-xl font-bold">
-                Legal<span className="text-blue-400">Nexus</span>
-              </span>
-            </div>
-            <p className="text-gray-400 text-sm mb-4">
-              Profesjonalna pomoc prawna online. Analiza dokumentów i przygotowanie pism prawnych przez doświadczonych
-              prawników.
+          {/* Company Info */}
+          <div className="col-span-1">
+            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-400 mb-4">
+              <Scale className="h-7 w-7" />
+              LegalNexus
+            </Link>
+            <p className="text-sm leading-relaxed mb-4">
+              Profesjonalna pomoc prawna online. Szybko, skutecznie i bezpiecznie.
             </p>
             <div className="flex space-x-4">
-              <Facebook className="h-5 w-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-              <Twitter className="h-5 w-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-              <Linkedin className="h-5 w-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
+              {socialLinks.map((social, index) => (
+                <a
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  aria-label={social.label}
+                >
+                  <social.icon className="h-6 w-6" />
+                </a>
+              ))}
             </div>
           </div>
 
+          {/* Usługi (Services) */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Usługi</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li>
-                <Link href="/analiza-dokumentow" className="hover:text-white transition-colors">
-                  Analiza dokumentów
-                </Link>
-              </li>
-              <li>
-                <Link href="/pisma-prawne" className="hover:text-white transition-colors">
-                  Pisma prawne
-                </Link>
-              </li>
-              <li>
-                <Link href="/konsultacje" className="hover:text-white transition-colors">
-                  Konsultacje
-                </Link>
-              </li>
-              <li>
-                <Link href="/reprezentacja" className="hover:text-white transition-colors">
-                  Reprezentacja
-                </Link>
-              </li>
+            <h3 className="text-lg font-semibold text-white mb-4">Usługi</h3>
+            <ul className="space-y-2">
+              {services.map((item, index) => (
+                <li key={index}>
+                  <Link href={item.href} className="text-sm hover:text-blue-400 transition-colors">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Informacje (Information) */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Informacje</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li>
-                <Link href="/regulamin" className="hover:text-white transition-colors">
-                  Regulamin
-                </Link>
-              </li>
-              <li>
-                <Link href="/polityka-prywatnosci" className="hover:text-white transition-colors">
-                  Polityka prywatności
-                </Link>
-              </li>
-              <li>
-                <Link href="/rodo" className="hover:text-white transition-colors">
-                  RODO
-                </Link>
-              </li>
-              <li>
-                <Link href="/faq" className="hover:text-white transition-colors">
-                  FAQ
-                </Link>
-              </li>
+            <h3 className="text-lg font-semibold text-white mb-4">Informacje</h3>
+            <ul className="space-y-2">
+              {information.map((item, index) => (
+                <li key={index}>
+                  <Link href={item.href} className="text-sm hover:text-blue-400 transition-colors">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Kontakt (Contact) */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Kontakt</h4>
-            <div className="space-y-3 text-gray-400">
-              <div className="flex items-center">
-                <Phone className="h-4 w-4 mr-2" />
-                <span>+48 123 456 789</span>
+            <h3 className="text-lg font-semibold text-white mb-4">Kontakt</h3>
+            <address className="not-italic space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <span>ul. Długa 46/47, 80-831 Gdańsk</span>
               </div>
-              <div className="flex items-center">
-                <Mail className="h-4 w-4 mr-2" />
-                <span>kontakt@legalnexus.pl</span>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-gray-400" />
+                <a href="tel:+48581234567" className="hover:text-blue-400 transition-colors">
+                  +48 58 123 45 67
+                </a>
               </div>
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-2" />
-                <span>Gdańsk, Polska</span>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-gray-400" />
+                <a href="mailto:kontakt@legalnexus.pl" className="hover:text-blue-400 transition-colors">
+                  kontakt@legalnexus.pl
+                </a>
               </div>
-            </div>
+            </address>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 mt-8 text-center text-gray-400">
-          <p>&copy; 2024 LegalNexus. Wszystkie prawa zastrzeżone.</p>
+        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-500">
+          &copy; {currentYear} LegalNexus. Wszelkie prawa zastrzeżone.
         </div>
       </div>
     </footer>
