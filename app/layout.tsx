@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "LegalNexus - Profesjonalne Usługi Prawne AI",
   description:
     "Nowoczesna platforma prawna z asystentem AI, analizą dokumentów i kompleksowym wsparciem dla kancelarii prawnych.",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
