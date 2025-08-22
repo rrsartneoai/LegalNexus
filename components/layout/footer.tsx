@@ -41,7 +41,7 @@ export function Footer() {
           <div className="col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-400 mb-4">
               <Scale className="h-7 w-7" />
-              LegalNexus
+              Kancelaria X
             </Link>
             <p className="text-sm leading-relaxed mb-4">
               Profesjonalna pomoc prawna online. Szybko, skutecznie i bezpiecznie.

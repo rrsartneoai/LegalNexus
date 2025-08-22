@@ -101,7 +101,7 @@ export function Header({ onMenuToggle, showMenuButton = false, onNavigate, curre
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-blue-700 dark:text-blue-400">
           <Scale className="h-6 w-6" />
-          LegalNexus
+          {"Kancelaria X\n"}
         </Link>
 
         {/* Desktop Navigation */}
